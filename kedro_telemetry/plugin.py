@@ -63,7 +63,7 @@ class KedroTelemetryCLIHooks:
     def before_command_run(self, project_metadata, command_args):
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
-        main_command = command_args[0]
+        main_command = command_args[0] if command_args else "kedro"
         if not project_metadata:
             return
 
@@ -121,7 +121,7 @@ def _format_user_cli_data(command_args, project_metadata):
 
     return {
         "username": hashed_username.hexdigest() if hashed_username else "anonymous",
-        "command": f"kedro {' '.join(command_args)}",
+        "command": f"kedro {' '.join(command_args)}" if command_args else "kedro",
         "package_name": hashed_package_name.hexdigest(),
         "project_name": hashed_project_name.hexdigest(),
         "project_version": project_version,

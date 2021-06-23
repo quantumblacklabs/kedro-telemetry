@@ -85,6 +85,34 @@ class TestKedroTelemetryCLIHooks:
             properties=expected_properties,
         )
 
+    def test_before_command_run_empty_args(self, mocker, fake_metadata):
+        mocker.patch(
+            "kedro_telemetry.plugin._check_for_telemetry_consent", return_value=True
+        )
+        mocked_anon_id = mocker.patch("hashlib.sha512")
+        mocked_anon_id.return_value.hexdigest.return_value = "digested"
+
+        mocked_heap_call = mocker.patch("kedro_telemetry.plugin._send_heap_event")
+        telemetry_hook = KedroTelemetryCLIHooks()
+        command_args = []
+        telemetry_hook.before_command_run(fake_metadata, command_args)
+        expected_properties = {
+            "username": "digested",
+            "command": "kedro",
+            "package_name": "digested",
+            "project_name": "digested",
+            "project_version": kedro_version,
+            "telemetry_version": telemetry_version,
+            "python_version": sys.version,
+            "os": sys.platform,
+        }
+
+        mocked_heap_call.assert_called_once_with(
+            event_name="Command run: kedro",
+            identity="digested",
+            properties=expected_properties,
+        )
+
     def test_before_command_run_no_consent_given(self, mocker, fake_metadata):
         mocker.patch(
             "kedro_telemetry.plugin._check_for_telemetry_consent", return_value=False
