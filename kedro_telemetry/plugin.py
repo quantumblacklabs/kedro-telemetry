@@ -104,7 +104,6 @@ class KedroTelemetryCLIHooks:
 
         # send generic event too so it's easier in data processing
         generic_properties = deepcopy(properties)
-        generic_properties["split_command"] = command_args
         generic_properties["main_command"] = main_command
         _send_heap_event(
             event_name="CLI command",

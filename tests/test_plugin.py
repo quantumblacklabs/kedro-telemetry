@@ -79,7 +79,6 @@ class TestKedroTelemetryCLIHooks:
             "os": sys.platform,
         }
         generic_properties = {
-            "split_command": ["--version"],
             "main_command": "--version",
             **expected_properties,
         }
@@ -120,7 +119,6 @@ class TestKedroTelemetryCLIHooks:
             "os": sys.platform,
         }
         generic_properties = {
-            "split_command": [],
             "main_command": "kedro",
             **expected_properties,
         }
@@ -187,7 +185,6 @@ class TestKedroTelemetryCLIHooks:
             "os": sys.platform,
         }
         generic_properties = {
-            "split_command": ["--version"],
             "main_command": "--version",
             **expected_properties,
         }
