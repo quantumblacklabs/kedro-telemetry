@@ -34,14 +34,16 @@ import logging
 import os
 import socket
 import sys
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import click
 import requests
 import yaml
 from kedro.framework.cli.hooks import cli_hook_impl
+from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry import __version__ as telemetry_version
 
@@ -60,11 +62,13 @@ class KedroTelemetryCLIHooks:
     # pylint: disable=too-few-public-methods
 
     @cli_hook_impl
-    def before_command_run(self, project_metadata, command_args):
+    def before_command_run(
+        self, project_metadata: ProjectMetadata, command_args: List[str]
+    ):
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
         main_command = command_args[0] if command_args else "kedro"
-        if not project_metadata:
+        if not project_metadata:  # in package mode
             return
 
         consent = _check_for_telemetry_consent(project_metadata.project_path)
@@ -96,6 +100,15 @@ class KedroTelemetryCLIHooks:
             event_name=f"Command run: {main_command}",
             identity=hashed_computer_name.hexdigest(),
             properties=properties,
+        )
+
+        # send generic event too so it's easier in data processing
+        generic_properties = deepcopy(properties)
+        generic_properties["main_command"] = main_command
+        _send_heap_event(
+            event_name="CLI command",
+            identity=hashed_computer_name.hexdigest(),
+            properties=generic_properties,
         )
 
 

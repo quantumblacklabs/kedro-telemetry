@@ -78,12 +78,24 @@ class TestKedroTelemetryCLIHooks:
             "python_version": sys.version,
             "os": sys.platform,
         }
+        generic_properties = {
+            "main_command": "--version",
+            **expected_properties,
+        }
 
-        mocked_heap_call.assert_called_once_with(
-            event_name="Command run: --version",
-            identity="digested",
-            properties=expected_properties,
-        )
+        expected_calls = [
+            mocker.call(
+                event_name="Command run: --version",
+                identity="digested",
+                properties=expected_properties,
+            ),
+            mocker.call(
+                event_name="CLI command",
+                identity="digested",
+                properties=generic_properties,
+            ),
+        ]
+        assert mocked_heap_call.call_args_list == expected_calls
 
     def test_before_command_run_empty_args(self, mocker, fake_metadata):
         mocker.patch(
@@ -106,12 +118,25 @@ class TestKedroTelemetryCLIHooks:
             "python_version": sys.version,
             "os": sys.platform,
         }
+        generic_properties = {
+            "main_command": "kedro",
+            **expected_properties,
+        }
 
-        mocked_heap_call.assert_called_once_with(
-            event_name="Command run: kedro",
-            identity="digested",
-            properties=expected_properties,
-        )
+        expected_calls = [
+            mocker.call(
+                event_name="Command run: kedro",
+                identity="digested",
+                properties=expected_properties,
+            ),
+            mocker.call(
+                event_name="CLI command",
+                identity="digested",
+                properties=generic_properties,
+            ),
+        ]
+
+        assert mocked_heap_call.call_args_list == expected_calls
 
     def test_before_command_run_no_consent_given(self, mocker, fake_metadata):
         mocker.patch(
@@ -159,12 +184,24 @@ class TestKedroTelemetryCLIHooks:
             "python_version": sys.version,
             "os": sys.platform,
         }
+        generic_properties = {
+            "main_command": "--version",
+            **expected_properties,
+        }
 
-        mocked_heap_call.assert_called_once_with(
-            event_name="Command run: --version",
-            identity="digested",
-            properties=expected_properties,
-        )
+        expected_calls = [
+            mocker.call(
+                event_name="Command run: --version",
+                identity="digested",
+                properties=expected_properties,
+            ),
+            mocker.call(
+                event_name="CLI command",
+                identity="digested",
+                properties=generic_properties,
+            ),
+        ]
+        assert mocked_heap_call.call_args_list == expected_calls
 
     def test_check_for_telemetry_consent_given(self, mocker, fake_metadata):
         Path(fake_metadata.project_path, "conf").mkdir(parents=True)
