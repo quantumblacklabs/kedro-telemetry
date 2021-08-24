@@ -1,4 +1,4 @@
-# Upcoming Release 0.1.2
+# Release 0.1.2
 
 ## Bug fixes and other changes
 * The plugin now sends an additional event to Heap, under the same type for any CLI command run, to make data processing easier.

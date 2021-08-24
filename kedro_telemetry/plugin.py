@@ -177,7 +177,7 @@ def _check_for_telemetry_consent(project_path: Path) -> bool:
     telemetry_file_path = project_path / ".telemetry"
     if not telemetry_file_path.exists():
         return _confirm_consent(telemetry_file_path)
-    with open(telemetry_file_path) as telemetry_file:
+    with open(telemetry_file_path, encoding="utf-8") as telemetry_file:
         telemetry = yaml.safe_load(telemetry_file)
         if _is_valid_syntax(telemetry):
             return telemetry["consent"]
