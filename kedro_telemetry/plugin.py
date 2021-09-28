@@ -112,7 +112,7 @@ class KedroTelemetryCLIHooks:
         )
 
 
-def _format_user_cli_data(command_args, project_metadata):
+def _format_user_cli_data(command_args: List[str], project_metadata: ProjectMetadata):
     """Hash username, format CLI command, system and project data to send to Heap."""
     hashed_username = ""
     try:
@@ -206,6 +206,10 @@ def _confirm_consent(telemetry_file_path: Path) -> bool:
             return True
         yaml.dump({"consent": False}, telemetry_file)
         return False
+
+
+def _mask_commands(command_args: List[str]) -> List[str]:
+    pass
 
 
 cli_hooks = KedroTelemetryCLIHooks()
