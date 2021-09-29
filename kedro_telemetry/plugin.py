@@ -67,7 +67,9 @@ class KedroTelemetryCLIHooks:
     ):
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
-        main_command = command_args[0] if command_args else "kedro"
+        masked_command_args = _mask_arguments(command_args)
+
+        main_command = masked_command_args[0] if masked_command_args else "kedro"
         if not project_metadata:  # in package mode
             return
 
@@ -94,7 +96,7 @@ class KedroTelemetryCLIHooks:
             )
             return
 
-        properties = _format_user_cli_data(command_args, project_metadata)
+        properties = _format_user_cli_data(masked_command_args, project_metadata)
 
         _send_heap_event(
             event_name=f"Command run: {main_command}",
@@ -208,8 +210,30 @@ def _confirm_consent(telemetry_file_path: Path) -> bool:
         return False
 
 
-def _mask_commands(command_args: List[str]) -> List[str]:
-    pass
+def _mask_arguments(command_args: List[str]) -> List[str]:
+    """Masks any arguments passed, such as pipeline and node names.
+    Ensures these are masked client-side"""
+    _eq = "="
+    _mask = "*****"
+    masked_commands = []
+    command_args_iterable = iter(command_args)
+
+    for arg in command_args_iterable:
+        if arg.startswith("-"):
+            # this if-else groups together arguments with "=" operator
+            # as well as those separated by whitespace
+            if _eq in arg:
+                masked_commands.append(arg.split(_eq, 1)[0])
+                masked_commands.append(_mask)
+            else:
+                masked_commands.append(arg)
+                next_arg = next(command_args_iterable, None)
+                if next_arg:
+                    masked_commands.append(_mask)
+        else:
+            masked_commands.append(arg)
+
+    return list(filter(None, masked_commands))
 
 
 cli_hooks = KedroTelemetryCLIHooks()
