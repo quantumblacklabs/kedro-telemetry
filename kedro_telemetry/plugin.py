@@ -36,6 +36,7 @@ import socket
 import sys
 from copy import deepcopy
 from datetime import datetime
+from itertools import chain, groupby
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -68,6 +69,8 @@ class KedroTelemetryCLIHooks:
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
         masked_command_args = _mask_arguments(command_args)
+        logger.info(f"Args: {command_args}")
+        logger.info(f"Masked: {masked_command_args}")
 
         main_command = masked_command_args[0] if masked_command_args else "kedro"
         if not project_metadata:  # in package mode
@@ -215,6 +218,55 @@ def _mask_arguments(command_args: List[str]) -> List[str]:
     Ensures these are masked client-side"""
     _eq = "="
     _mask = "*****"
+    command_whitelist = [
+        "kedro",
+        "pipeline",
+        "registry",
+        "catalog",
+        "test",
+        "lint",
+        "docs",
+        "info",
+        "new",
+        "starter",
+        "activate-nbstripout",
+        "build-docs",
+        "build-reqs",
+        "install",
+        "ipython",
+        "jupyter",
+        "notebook",
+        "package",
+        "run",
+    ]
+    task_whitelist = [
+        "create",
+        "list",
+        "delete",
+        "pull",
+        "describe",
+        "mlflow-start",
+        "inspect",
+        "build",
+        "init",
+        "profile",
+        "validate",
+        "add",
+        "schedule",
+    ]
+    third_party_whitelist = [
+        "viz",
+        "docker",
+        "kubeflow",
+        "mlflow",
+        "fast-api",
+        "ge",
+        "compass",
+        "pmpx",
+        "insurex",
+        "airflow",
+        "airflow-k8s",
+    ]
     masked_commands = []
     command_args_iterable = iter(command_args)
 
@@ -227,13 +279,13 @@ def _mask_arguments(command_args: List[str]) -> List[str]:
                 masked_commands.append(_mask)
             else:
                 masked_commands.append(arg)
-                next_arg = next(command_args_iterable, None)
-                if next_arg:
-                    masked_commands.append(_mask)
-        else:
+        elif arg in chain(command_whitelist, task_whitelist, third_party_whitelist):
             masked_commands.append(arg)
+        else:
+            masked_commands.append(_mask)
 
-    return list(filter(None, masked_commands))
+    # remove consecutive masks as they're likely by syntax errors
+    return [x[0] for x in groupby(masked_commands)]
 
 
 cli_hooks = KedroTelemetryCLIHooks()
