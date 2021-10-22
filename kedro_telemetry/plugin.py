@@ -36,13 +36,13 @@ import socket
 import sys
 from copy import deepcopy
 from datetime import datetime
-from itertools import chain, groupby
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import click
 import requests
 import yaml
+from kedro.framework.cli.cli import KedroCLI
 from kedro.framework.cli.hooks import cli_hook_impl
 from kedro.framework.startup import ProjectMetadata
 
@@ -68,11 +68,14 @@ class KedroTelemetryCLIHooks:
     ):
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
-        masked_command_args = _mask_arguments(command_args)
-        logger.info(f"Args: {command_args}")
-        logger.info(f"Masked: {masked_command_args}")
 
-        main_command = masked_command_args[0] if masked_command_args else "kedro"
+        # get KedroCLI and its structure
+        cli = KedroCLI(project_path=Path.cwd())
+        cli_struct = get_cli_structure(cli_obj=cli, get_help=False)
+
+        logger.info(f"Full Kedro CLI: {cli_struct}")
+
+        main_command = command_args[0] if command_args else "kedro"
         if not project_metadata:  # in package mode
             return
 
@@ -99,7 +102,7 @@ class KedroTelemetryCLIHooks:
             )
             return
 
-        properties = _format_user_cli_data(masked_command_args, project_metadata)
+        properties = _format_user_cli_data(command_args, project_metadata)
 
         _send_heap_event(
             event_name=f"Command run: {main_command}",
@@ -213,79 +216,44 @@ def _confirm_consent(telemetry_file_path: Path) -> bool:
         return False
 
 
-def _mask_arguments(command_args: List[str]) -> List[str]:
-    """Masks any arguments passed, such as pipeline and node names.
-    Ensures these are masked client-side"""
-    _eq = "="
-    _mask = "*****"
-    command_whitelist = [
-        "kedro",
-        "pipeline",
-        "registry",
-        "catalog",
-        "test",
-        "lint",
-        "docs",
-        "info",
-        "new",
-        "starter",
-        "activate-nbstripout",
-        "build-docs",
-        "build-reqs",
-        "install",
-        "ipython",
-        "jupyter",
-        "notebook",
-        "package",
-        "run",
-    ]
-    task_whitelist = [
-        "create",
-        "list",
-        "delete",
-        "pull",
-        "describe",
-        "mlflow-start",
-        "inspect",
-        "build",
-        "init",
-        "profile",
-        "validate",
-        "add",
-        "schedule",
-    ]
-    third_party_whitelist = [
-        "viz",
-        "docker",
-        "kubeflow",
-        "mlflow",
-        "fast-api",
-        "ge",
-        "compass",
-        "pmpx",
-        "insurex",
-        "airflow",
-        "airflow-k8s",
-    ]
-    masked_commands = []
-    command_args_iterable = iter(command_args)
+def _recurse_cli(
+    cli_element: Union[click.Command, click.Group, click.CommandCollection],
+    ctx: click.Context,
+    io_dict: Dict[str, Any],
+    get_help: bool = False,
+) -> None:
+    """Code copied over from kedro.tools.cli to maintain backwards compatibility
+    with previous versions of kedro (<0.17.5)"""
+    if isinstance(cli_element, (click.Group, click.CommandCollection)):
+        element_name = cli_element.name or "kedro"
+        io_dict[element_name] = {}
+        for _sc in cli_element.list_commands(ctx):
+            _recurse_cli(  # type: ignore
+                cli_element.get_command(ctx, _sc), ctx, io_dict[element_name], get_help,
+            )
 
-    for arg in command_args_iterable:
-        if arg.startswith("-"):
-            # this if-else groups together arguments with "=" operator
-            # as well as those separated by whitespace
-            if _eq in arg:
-                masked_commands.append(arg.split(_eq, 1)[0])
-                masked_commands.append(_mask)
-            else:
-                masked_commands.append(arg)
-        elif arg in chain(command_whitelist, task_whitelist, third_party_whitelist):
-            masked_commands.append(arg)
-        else:
-            masked_commands.append(_mask)
+    elif isinstance(cli_element, click.Command):
+        if get_help:  # gets formatted CLI help incl params for printing
+            io_dict[cli_element.name] = cli_element.get_help(ctx)
+        else:  # gets params for structure purposes
+            l_of_l = [_o.opts for _o in cli_element.get_params(ctx)]
+            io_dict[cli_element.name] = [item for sublist in l_of_l for item in sublist]
 
-    # remove consecutive masks as they're likely by syntax errors
-    return [x[0] for x in groupby(masked_commands)]
+
+def get_cli_structure(
+    cli_obj: Union[click.Command, click.Group, click.CommandCollection],
+    get_help: bool = False,
+) -> Dict[str, Any]:
+    """Code copied over from kedro.tools.cli to maintain backwards compatibility
+    with previous versions of kedro (<0.17.5)"""
+    output: Dict[str, Any] = dict()
+    with click.Context(cli_obj) as ctx:  # type: ignore
+        _recurse_cli(cli_obj, ctx, output, get_help)
+    return output
+
+
+def mask_kedro_cli(cli_struct: Dict[str, Any]) -> Dict[str, Any]:
+    pass
 
 
 cli_hooks = KedroTelemetryCLIHooks()
