@@ -37,7 +37,7 @@ import sys
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Set, Union
 
 import click
 import requests
@@ -72,8 +72,9 @@ class KedroTelemetryCLIHooks:
         # get KedroCLI and its structure
         cli = KedroCLI(project_path=Path.cwd())
         cli_struct = get_cli_structure(cli_obj=cli, get_help=False)
+        vocabulary = _get_vocabulary(cli_struct)
 
-        logger.info(f"Full Kedro CLI: {cli_struct}")
+        logger.info(f"Full Kedro CLI vocabulary: {vocabulary}")
 
         main_command = command_args[0] if command_args else "kedro"
         if not project_metadata:  # in package mode
@@ -237,7 +238,9 @@ def _recurse_cli(
             io_dict[cli_element.name] = cli_element.get_help(ctx)
         else:  # gets params for structure purposes
             l_of_l = [_o.opts for _o in cli_element.get_params(ctx)]
-            io_dict[cli_element.name] = [item for sublist in l_of_l for item in sublist]
+            io_dict[cli_element.name] = dict.fromkeys(
+                [item for sublist in l_of_l for item in sublist], None
+            )
 
 
 def get_cli_structure(
@@ -246,14 +249,34 @@ def get_cli_structure(
 ) -> Dict[str, Any]:
     """Code copied over from kedro.tools.cli to maintain backwards compatibility
     with previous versions of kedro (<0.17.5)"""
-    output: Dict[str, Any] = dict()
+    output: Dict[str, Any] = {}
     with click.Context(cli_obj) as ctx:  # type: ignore
         _recurse_cli(cli_obj, ctx, output, get_help)
     return output
 
 
 def mask_kedro_cli(cli_struct: Dict[str, Any]) -> Dict[str, Any]:
+    # easy solution - get a dynamic vocabulary from the structure
+    # and make that into a whitelist all the while handling parameter args
     pass
+
+
+def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
+    vocabulary = set()
+    for _k, _v in _recursive_items(cli_struct):
+        vocabulary.add(_k)
+        if _v:
+            vocabulary.add(_v)
+    return vocabulary
+
+
+def _recursive_items(dictionary: Dict[Any, Any]):
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            yield key, None
+            yield from _recursive_items(value)
+        else:
+            yield key, value
 
 
 cli_hooks = KedroTelemetryCLIHooks()
