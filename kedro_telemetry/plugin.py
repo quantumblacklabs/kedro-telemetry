@@ -282,7 +282,7 @@ def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[
 
 def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
     """Builds a unique whitelist of terms - a vocabulary"""
-    vocabulary = {"-h", "--help"}  # help args are not in by default
+    vocabulary = {"-h", "--version"}  # -h help and version args are not in by default
     for _k, _v in _recursive_items(cli_struct):
         vocabulary.add(_k)
         if _v:
