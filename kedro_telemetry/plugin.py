@@ -69,14 +69,15 @@ class KedroTelemetryCLIHooks:
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
 
-        # get KedroCLI and its structure
+        # get KedroCLI and its structure from actual project root
         cli = KedroCLI(project_path=Path.cwd())
         cli_struct = get_cli_structure(cli_obj=cli, get_help=False)
-        vocabulary = _get_vocabulary(cli_struct)
+        masked_command_args = mask_kedro_cli(
+            cli_struct=cli_struct, command_args=command_args
+        )
+        logger.info("Masked Kedro CLI: %s", masked_command_args)
 
-        logger.info(f"Full Kedro CLI vocabulary: {vocabulary}")
-
-        main_command = command_args[0] if command_args else "kedro"
+        main_command = masked_command_args[0] if masked_command_args else "kedro"
         if not project_metadata:  # in package mode
             return
 
@@ -103,7 +104,7 @@ class KedroTelemetryCLIHooks:
             )
             return
 
-        properties = _format_user_cli_data(command_args, project_metadata)
+        properties = _format_user_cli_data(masked_command_args, project_metadata)
 
         _send_heap_event(
             event_name=f"Command run: {main_command}",
@@ -248,21 +249,40 @@ def get_cli_structure(
     get_help: bool = False,
 ) -> Dict[str, Any]:
     """Code copied over from kedro.tools.cli to maintain backwards compatibility
-    with previous versions of kedro (<0.17.5)"""
+    with previous versions of kedro (<0.17.5).
+    Takes a `KedroCLI` structure and returns a nested dictionary structure using
+    `_recurse_cli`
+    """
     output: Dict[str, Any] = {}
     with click.Context(cli_obj) as ctx:  # type: ignore
         _recurse_cli(cli_obj, ctx, output, get_help)
     return output
 
 
-def mask_kedro_cli(cli_struct: Dict[str, Any]) -> Dict[str, Any]:
-    # easy solution - get a dynamic vocabulary from the structure
-    # and make that into a whitelist all the while handling parameter args
-    pass
+def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[str]:
+    """Takes a dynamic vocabulary (based on `KedroCLI`) and returns
+    a masked CLI input"""
+    output = []
+    mask = "*****"
+    vocabulary = _get_vocabulary(cli_struct)
+    for arg in command_args:
+        if arg.startswith("-"):
+            for arg_part in arg.split("="):
+                if arg_part in vocabulary:
+                    output.append(arg_part)
+                elif arg_part:
+                    output.append(mask)
+        else:
+            if arg in vocabulary:
+                output.append(arg)
+            elif arg:
+                output.append(mask)
+    return output
 
 
 def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
-    vocabulary = set()
+    """Builds a unique whitelist of terms - a vocabulary"""
+    vocabulary = {"-h", "--help"}  # help args are not in by default
     for _k, _v in _recursive_items(cli_struct):
         vocabulary.add(_k)
         if _v:
