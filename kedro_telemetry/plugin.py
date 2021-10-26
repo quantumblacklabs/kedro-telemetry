@@ -37,7 +37,7 @@ import sys
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List
 
 import click
 import requests
@@ -47,6 +47,7 @@ from kedro.framework.cli.hooks import cli_hook_impl
 from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry import __version__ as telemetry_version
+from kedro_telemetry.masking import get_cli_structure, mask_kedro_cli
 
 HEAP_APPID_PROD = "2388822444"
 
@@ -216,87 +217,6 @@ def _confirm_consent(telemetry_file_path: Path) -> bool:
             return True
         yaml.dump({"consent": False}, telemetry_file)
         return False
-
-
-def _recurse_cli(
-    cli_element: Union[click.Command, click.Group, click.CommandCollection],
-    ctx: click.Context,
-    io_dict: Dict[str, Any],
-    get_help: bool = False,
-) -> None:
-    """Code copied over from kedro.tools.cli to maintain backwards compatibility
-    with previous versions of kedro (<0.17.5)"""
-    if isinstance(cli_element, (click.Group, click.CommandCollection)):
-        element_name = cli_element.name or "kedro"
-        io_dict[element_name] = {}
-        for _sc in cli_element.list_commands(ctx):
-            _recurse_cli(  # type: ignore
-                cli_element.get_command(ctx, _sc), ctx, io_dict[element_name], get_help,
-            )
-
-    elif isinstance(cli_element, click.Command):
-        if get_help:  # gets formatted CLI help incl params for printing
-            io_dict[cli_element.name] = cli_element.get_help(ctx)
-        else:  # gets params for structure purposes
-            l_of_l = [_o.opts for _o in cli_element.get_params(ctx)]
-            io_dict[cli_element.name] = dict.fromkeys(
-                [item for sublist in l_of_l for item in sublist], None
-            )
-
-
-def get_cli_structure(
-    cli_obj: Union[click.Command, click.Group, click.CommandCollection],
-    get_help: bool = False,
-) -> Dict[str, Any]:
-    """Code copied over from kedro.tools.cli to maintain backwards compatibility
-    with previous versions of kedro (<0.17.5).
-    Takes a `KedroCLI` structure and returns a nested dictionary structure using
-    `_recurse_cli`
-    """
-    output: Dict[str, Any] = {}
-    with click.Context(cli_obj) as ctx:  # type: ignore
-        _recurse_cli(cli_obj, ctx, output, get_help)
-    return output
-
-
-def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[str]:
-    """Takes a dynamic vocabulary (based on `KedroCLI`) and returns
-    a masked CLI input"""
-    output = []
-    mask = "*****"
-    vocabulary = _get_vocabulary(cli_struct)
-    for arg in command_args:
-        if arg.startswith("-"):
-            for arg_part in arg.split("="):
-                if arg_part in vocabulary:
-                    output.append(arg_part)
-                elif arg_part:
-                    output.append(mask)
-        else:
-            if arg in vocabulary:
-                output.append(arg)
-            elif arg:
-                output.append(mask)
-    return output
-
-
-def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
-    """Builds a unique whitelist of terms - a vocabulary"""
-    vocabulary = {"-h", "--version"}  # -h help and version args are not in by default
-    for _k, _v in _recursive_items(cli_struct):
-        vocabulary.add(_k)
-        if _v:
-            vocabulary.add(_v)
-    return vocabulary
-
-
-def _recursive_items(dictionary: Dict[Any, Any]):
-    for key, value in dictionary.items():
-        if isinstance(value, dict):
-            yield key, None
-            yield from _recursive_items(value)
-        else:
-            yield key, value
 
 
 cli_hooks = KedroTelemetryCLIHooks()
