@@ -28,7 +28,7 @@
 
 """Module containing command masking functionality."""
 
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, Iterator, List, Set, Tuple, Union
 
 import click
 
@@ -125,7 +125,7 @@ def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
     return vocabulary
 
 
-def _recursive_items(dictionary: Dict[Any, Any]):
+def _recursive_items(dictionary: Dict[Any, Any]) -> Iterator[Tuple[str, Any]]:
     for key, value in dictionary.items():
         if isinstance(value, dict):
             yield key, None
