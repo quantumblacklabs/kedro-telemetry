@@ -32,6 +32,8 @@ from typing import Any, Dict, Iterator, List, Set, Tuple, Union
 
 import click
 
+MASK = "*****"
+
 
 def _recurse_cli(
     cli_element: Union[click.Command, click.Group, click.CommandCollection],
@@ -98,7 +100,6 @@ def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[
     """Takes a dynamic vocabulary (based on `KedroCLI`) and returns
     a masked CLI input"""
     output = []
-    mask = "*****"
     vocabulary = _get_vocabulary(cli_struct)
     for arg in command_args:
         if arg.startswith("-"):
@@ -106,12 +107,12 @@ def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[
                 if arg_part in vocabulary:
                     output.append(arg_part)
                 elif arg_part:
-                    output.append(mask)
+                    output.append(MASK)
         else:
             if arg in vocabulary:
                 output.append(arg)
             elif arg:
-                output.append(mask)
+                output.append(MASK)
     return output
 
 

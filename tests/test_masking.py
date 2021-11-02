@@ -39,6 +39,7 @@ from kedro.framework.cli.cli import KedroCLI, cli
 from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry.masking import (
+    MASK,
     _get_vocabulary,
     _recursive_items,
     get_cli_structure,
@@ -202,7 +203,7 @@ class TestCLIMasking:
                     }
                 },
                 ["command_a", "--param1=foo"],
-                ["command_a", "--param1", "*****"],
+                ["command_a", "--param1", MASK],
             ),
             (
                 {
@@ -212,7 +213,7 @@ class TestCLIMasking:
                     }
                 },
                 ["command_a", "--param1= foo"],
-                ["command_a", "--param1", "*****"],
+                ["command_a", "--param1", MASK],
             ),
             (
                 {
@@ -222,7 +223,7 @@ class TestCLIMasking:
                     }
                 },
                 ["command_a", "-p", "bar"],
-                ["command_a", "-p", "*****"],
+                ["command_a", "-p", MASK],
             ),
             (
                 {
@@ -232,7 +233,7 @@ class TestCLIMasking:
                     }
                 },
                 ["command_a", "-xyz", "bar"],
-                ["command_a", "*****", "*****"],
+                ["command_a", MASK, MASK],
             ),
             (
                 {
@@ -242,16 +243,7 @@ class TestCLIMasking:
                     }
                 },
                 ["none", "of", "this", "should", "be", "seen", "except", "command_a"],
-                [
-                    "*****",
-                    "*****",
-                    "*****",
-                    "*****",
-                    "*****",
-                    "*****",
-                    "*****",
-                    "command_a",
-                ],
+                [MASK, MASK, MASK, MASK, MASK, MASK, MASK, MASK,],
             ),
         ],
     )
