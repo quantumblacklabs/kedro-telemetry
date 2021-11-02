@@ -144,8 +144,8 @@ class TestCLIMasking:
         "input_dict, expected_output_count",
         [
             ({}, 0),
-            ({"a": "foo"}, 1),
-            ({"a": {"b": "bar"}, "c": {"baz"}}, 3),
+            ({"a": "foo"}, 2),
+            ({"a": {"b": "bar"}, "c": {"baz"}}, 5),
             (
                 {
                     "a": {"b": "bar"},
@@ -153,7 +153,7 @@ class TestCLIMasking:
                     "d": {"e": "fizz"},
                     "f": {"g": {"h": "buzz"}},
                 },
-                8,
+                12,
             ),
         ],
     )
@@ -164,24 +164,6 @@ class TestCLIMasking:
 
     def test_recursive_items_empty(self):
         assert len(list(_recursive_items({}))) == 0
-
-    @pytest.mark.parametrize(
-        "input_dict, expected_tuple",
-        [
-            (
-                {
-                    "a": {"b": "bar"},
-                    "c": None,
-                    "d": {"e": "fizz"},
-                    "f": {"g": {"h": "buzz"}},
-                },
-                ("h", "buzz"),
-            ),
-            ({"a": {},}, ("a", None)),
-        ],
-    )
-    def test_recursive_items_last_leaf(self, input_dict, expected_tuple):
-        assert list(_recursive_items(input_dict))[-1] == expected_tuple
 
     def test_get_vocabulary_empty(self):
         assert _get_vocabulary({}) == {"-h", "--version"}
@@ -243,7 +225,7 @@ class TestCLIMasking:
                     }
                 },
                 ["none", "of", "this", "should", "be", "seen", "except", "command_a"],
-                [MASK, MASK, MASK, MASK, MASK, MASK, MASK, MASK,],
+                [MASK, MASK, MASK, MASK, MASK, MASK, MASK, "command_a"],
             ),
         ],
     )

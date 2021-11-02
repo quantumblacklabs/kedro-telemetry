@@ -27,8 +27,9 @@
 # limitations under the License.
 
 """Module containing command masking functionality."""
-
-from typing import Any, Dict, Iterator, List, Set, Tuple, Union
+from functools import partial
+from operator import is_not
+from typing import Any, Dict, Iterator, List, Set, Union
 
 import click
 
@@ -119,17 +120,18 @@ def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[
 def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
     """Builds a unique whitelist of terms - a vocabulary"""
     vocabulary = {"-h", "--version"}  # -h help and version args are not in by default
-    for _k, _v in _recursive_items(cli_struct):
-        vocabulary.add(_k)
-        if _v:
-            vocabulary.add(_v)
+    cli_dynamic_vocabulary = filter(
+        partial(is_not, None), set(_recursive_items(cli_struct))
+    )
+    vocabulary.update(cli_dynamic_vocabulary)
     return vocabulary
 
 
-def _recursive_items(dictionary: Dict[Any, Any]) -> Iterator[Tuple[str, Any]]:
+def _recursive_items(dictionary: Dict[Any, Any]) -> Iterator[str]:
     for key, value in dictionary.items():
         if isinstance(value, dict):
-            yield key, None
+            yield key
             yield from _recursive_items(value)
         else:
-            yield key, value
+            yield key
+            yield value
