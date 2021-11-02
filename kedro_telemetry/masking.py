@@ -67,18 +67,21 @@ def _recurse_cli(
     if isinstance(cli_element, (click.Group, click.CommandCollection)):
         element_name = cli_element.name or "kedro"
         io_dict[element_name] = {}
-        for _sc in cli_element.list_commands(ctx):
+        for sub_command in cli_element.list_commands(ctx):
             _recurse_cli(  # type: ignore
-                cli_element.get_command(ctx, _sc), ctx, io_dict[element_name], get_help,
+                cli_element.get_command(ctx, sub_command),
+                ctx,
+                io_dict[element_name],
+                get_help,
             )
 
     elif isinstance(cli_element, click.Command):
         if get_help:  # gets formatted CLI help incl params for printing
             io_dict[cli_element.name] = cli_element.get_help(ctx)
         else:  # gets params for structure purposes
-            l_of_l = [_o.opts for _o in cli_element.get_params(ctx)]
+            nested_list = [_o.opts for _o in cli_element.get_params(ctx)]
             io_dict[cli_element.name] = dict.fromkeys(
-                [item for sublist in l_of_l for item in sublist], None
+                [item for sublist in nested_list for item in sublist], None
             )
 
 
