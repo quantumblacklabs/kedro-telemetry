@@ -29,7 +29,6 @@
 
 """Testing module for CLI tools"""
 import shutil
-import tempfile
 from collections import namedtuple
 from pathlib import Path
 
@@ -67,17 +66,15 @@ DEFAULT_KEDRO_COMMANDS = [
 ]
 
 
-@pytest.fixture(scope="function")
-def fake_root_dir():
-    # using tempfile as tmp_path fixture doesn't support module scope
-    tmpdir = tempfile.mkdtemp()
+@pytest.fixture
+def fake_root_dir(tmp_path):
     try:
-        yield Path(tmpdir).resolve()
+        yield Path(tmp_path).resolve()
     finally:
-        shutil.rmtree(tmpdir, ignore_errors=True)
+        shutil.rmtree(tmp_path, ignore_errors=True)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def fake_metadata(fake_root_dir):
     metadata = ProjectMetadata(
         fake_root_dir / REPO_NAME / "pyproject.toml",
@@ -91,9 +88,7 @@ def fake_metadata(fake_root_dir):
 
 
 class TestCLIMasking:
-    def test_get_cli_structure(self, mocker, fake_metadata):
-        # This test is a replica of `kedro.tests.tools.test_cli.py` tests
-        # This duplication is to maintain backwards compatibility
+    def test_get_cli_structure_raw(self, mocker, fake_metadata):
         Module = namedtuple("Module", ["cli"])
         mocker.patch(
             "kedro.framework.cli.cli.importlib.import_module",
@@ -107,7 +102,6 @@ class TestCLIMasking:
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
         raw_cli_structure = get_cli_structure(kedro_cli, get_help=False)
-        help_cli_structure = get_cli_structure(kedro_cli, get_help=True)
 
         # raw CLI structure tests
         assert isinstance(raw_cli_structure, dict)
@@ -121,7 +115,55 @@ class TestCLIMasking:
             DEFAULT_KEDRO_COMMANDS
         )
 
-        # get_help CLI structure tests
+    def test_get_cli_structure_depth(self, mocker, fake_metadata):
+        Module = namedtuple("Module", ["cli"])
+        mocker.patch(
+            "kedro.framework.cli.cli.importlib.import_module",
+            return_value=Module(cli=cli),
+        )
+        mocker.patch(
+            "kedro.framework.cli.cli._is_project", return_value=True,
+        )
+        mocker.patch(
+            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata,
+        )
+        kedro_cli = KedroCLI(fake_metadata.project_path)
+        raw_cli_structure = get_cli_structure(kedro_cli, get_help=False)
+        assert isinstance(raw_cli_structure["kedro"]["new"], dict)
+        assert sorted(list(raw_cli_structure["kedro"]["new"].keys())) == sorted(
+            [
+                "--verbose",
+                "-v",
+                "--config",
+                "-c",
+                "--starter",
+                "-s",
+                "--checkout",
+                "--directory",
+                "--help",
+            ]
+        )
+        # now check that once params and args are reached, the values are None
+        assert raw_cli_structure["kedro"]["new"]["--starter"] is None
+        assert raw_cli_structure["kedro"]["new"]["--checkout"] is None
+        assert raw_cli_structure["kedro"]["new"]["--help"] is None
+        assert raw_cli_structure["kedro"]["new"]["-c"] is None
+
+    def test_get_cli_structure_help(self, mocker, fake_metadata):
+        Module = namedtuple("Module", ["cli"])
+        mocker.patch(
+            "kedro.framework.cli.cli.importlib.import_module",
+            return_value=Module(cli=cli),
+        )
+        mocker.patch(
+            "kedro.framework.cli.cli._is_project", return_value=True,
+        )
+        mocker.patch(
+            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata,
+        )
+        kedro_cli = KedroCLI(fake_metadata.project_path)
+        help_cli_structure = get_cli_structure(kedro_cli, get_help=True)
+
         assert isinstance(help_cli_structure, dict)
         assert isinstance(help_cli_structure["kedro"], dict)
 
