@@ -76,8 +76,6 @@ class KedroTelemetryCLIHooks:
         masked_command_args = mask_kedro_cli(
             cli_struct=cli_struct, command_args=command_args
         )
-        logger.info("Masked Kedro CLI: %s", masked_command_args)
-
         main_command = masked_command_args[0] if masked_command_args else "kedro"
         if not project_metadata:  # in package mode
             return
