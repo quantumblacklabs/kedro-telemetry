@@ -200,8 +200,8 @@ class TestCLIMasking:
         ],
     )
     def test_recursive_items(self, input_dict, expected_output_count):
-        assert expected_output_count == sum(
-            1 for _ in _recursive_items(dictionary=input_dict)
+        assert expected_output_count == len(
+            list(_recursive_items(dictionary=input_dict))
         )
 
     def test_recursive_items_empty(self):
