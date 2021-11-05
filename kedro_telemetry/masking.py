@@ -27,8 +27,6 @@
 # limitations under the License.
 
 """Module containing command masking functionality."""
-from functools import partial
-from operator import is_not
 from typing import Any, Dict, Iterator, List, Set, Union
 
 import click
@@ -125,9 +123,7 @@ def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[
 def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
     """Builds a unique whitelist of terms - a vocabulary"""
     vocabulary = {"-h", "--version"}  # -h help and version args are not in by default
-    cli_dynamic_vocabulary = filter(
-        partial(is_not, None), set(_recursive_items(cli_struct))
-    )
+    cli_dynamic_vocabulary = set(_recursive_items(cli_struct)) - {None}
     vocabulary.update(cli_dynamic_vocabulary)
     return vocabulary
 
