@@ -132,7 +132,7 @@ def _get_vocabulary(cli_struct: Dict[str, Any]) -> Set[str]:
     return vocabulary
 
 
-def _recursive_items(dictionary: Dict[Any, Any]) -> Iterator[str]:
+def _recursive_items(dictionary: Dict[Any, Any]) -> Iterator[Any]:
     for key, value in dictionary.items():
         if isinstance(value, dict):
             yield key
