@@ -17,9 +17,6 @@ test:
 secret-scan:
 	trufflehog --max_depth 1 .
 
-legal:
-	python tools/license_and_headers.py
-
 clean:
 	rm -rf build dist pip-wheel-metadata .pytest_cache
 	find . -regex ".*/__pycache__" -exec rm -rf {} +
