@@ -59,11 +59,6 @@ repos:
         language: system
         pass_filenames: false
         entry: black kedro_telemetry tests
-      - id: legal
-        name: "Licence check"
-        language: system
-        pass_filenames: false
-        entry: make legal
       - id: secret_scan
         name: "Secret scan"
         language: system
