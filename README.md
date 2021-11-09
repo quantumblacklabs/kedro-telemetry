@@ -24,7 +24,7 @@ You have furthermore certain data subject rights under applicable laws (incl. ri
 
 Besides the hashed host- and username, we collect the following project-related information. Again, we rely on your consent to do so:
 
-* CLI command that was run (e.g. `kedro run --env test`)
+* CLI command that was run with arguments masked (e.g. `kedro run --env=test` → `kedro run --env *****`)
 * _(Hashed)_ Package name
 * _(Hashed)_ Project name
 * Project version
