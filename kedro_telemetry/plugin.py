@@ -14,10 +14,12 @@ from typing import Any, Dict, List
 import click
 import requests
 import yaml
+from kedro.framework.cli.cli import KedroCLI
 from kedro.framework.cli.hooks import cli_hook_impl
 from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry import __version__ as telemetry_version
+from kedro_telemetry.masking import _get_cli_structure, _mask_kedro_cli
 
 HEAP_APPID_PROD = "2388822444"
 
@@ -39,7 +41,14 @@ class KedroTelemetryCLIHooks:
     ):
         """Hook implementation to send command run data to Heap"""
         # pylint: disable=no-self-use
-        main_command = command_args[0] if command_args else "kedro"
+
+        # get KedroCLI and its structure from actual project root
+        cli = KedroCLI(project_path=Path.cwd())
+        cli_struct = _get_cli_structure(cli_obj=cli, get_help=False)
+        masked_command_args = _mask_kedro_cli(
+            cli_struct=cli_struct, command_args=command_args
+        )
+        main_command = masked_command_args[0] if masked_command_args else "kedro"
         if not project_metadata:  # in package mode
             return
 
@@ -66,7 +75,7 @@ class KedroTelemetryCLIHooks:
             )
             return
 
-        properties = _format_user_cli_data(command_args, project_metadata)
+        properties = _format_user_cli_data(masked_command_args, project_metadata)
 
         _send_heap_event(
             event_name=f"Command run: {main_command}",
@@ -84,7 +93,7 @@ class KedroTelemetryCLIHooks:
         )
 
 
-def _format_user_cli_data(command_args, project_metadata):
+def _format_user_cli_data(command_args: List[str], project_metadata: ProjectMetadata):
     """Hash username, format CLI command, system and project data to send to Heap."""
     hashed_username = ""
     try:
