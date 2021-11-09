@@ -39,10 +39,10 @@ from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry.masking import (
     MASK,
+    _get_cli_structure,
     _get_vocabulary,
+    _mask_kedro_cli,
     _recursive_items,
-    get_cli_structure,
-    mask_kedro_cli,
 )
 
 REPO_NAME = "cli_tools_dummy_project"
@@ -95,13 +95,15 @@ class TestCLIMasking:
             return_value=Module(cli=cli),
         )
         mocker.patch(
-            "kedro.framework.cli.cli._is_project", return_value=True,
+            "kedro.framework.cli.cli._is_project",
+            return_value=True,
         )
         mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project",
+            return_value=fake_metadata,
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
-        raw_cli_structure = get_cli_structure(kedro_cli, get_help=False)
+        raw_cli_structure = _get_cli_structure(kedro_cli, get_help=False)
 
         # raw CLI structure tests
         assert isinstance(raw_cli_structure, dict)
@@ -122,13 +124,15 @@ class TestCLIMasking:
             return_value=Module(cli=cli),
         )
         mocker.patch(
-            "kedro.framework.cli.cli._is_project", return_value=True,
+            "kedro.framework.cli.cli._is_project",
+            return_value=True,
         )
         mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project",
+            return_value=fake_metadata,
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
-        raw_cli_structure = get_cli_structure(kedro_cli, get_help=False)
+        raw_cli_structure = _get_cli_structure(kedro_cli, get_help=False)
         assert isinstance(raw_cli_structure["kedro"]["new"], dict)
         assert sorted(list(raw_cli_structure["kedro"]["new"].keys())) == sorted(
             [
@@ -156,13 +160,15 @@ class TestCLIMasking:
             return_value=Module(cli=cli),
         )
         mocker.patch(
-            "kedro.framework.cli.cli._is_project", return_value=True,
+            "kedro.framework.cli.cli._is_project",
+            return_value=True,
         )
         mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project",
+            return_value=fake_metadata,
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
-        help_cli_structure = get_cli_structure(kedro_cli, get_help=True)
+        help_cli_structure = _get_cli_structure(kedro_cli, get_help=True)
 
         assert isinstance(help_cli_structure, dict)
         assert isinstance(help_cli_structure["kedro"], dict)
@@ -274,6 +280,6 @@ class TestCLIMasking:
     def test_mask_kedro_cli(
         self, input_cli_structure, input_command_args, expected_masked_args
     ):
-        assert expected_masked_args == mask_kedro_cli(
+        assert expected_masked_args == _mask_kedro_cli(
             cli_struct=input_cli_structure, command_args=input_command_args
         )

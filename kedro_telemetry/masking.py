@@ -85,7 +85,7 @@ def _recurse_cli(
             )
 
 
-def get_cli_structure(
+def _get_cli_structure(
     cli_obj: Union[click.Command, click.Group, click.CommandCollection],
     get_help: bool = False,
 ) -> Dict[str, Any]:
@@ -100,7 +100,7 @@ def get_cli_structure(
     return output
 
 
-def mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[str]:
+def _mask_kedro_cli(cli_struct: Dict[str, Any], command_args: List[str]) -> List[str]:
     """Takes a dynamic vocabulary (based on `KedroCLI`) and returns
     a masked CLI input"""
     output = []

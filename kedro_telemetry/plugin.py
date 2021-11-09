@@ -47,7 +47,7 @@ from kedro.framework.cli.hooks import cli_hook_impl
 from kedro.framework.startup import ProjectMetadata
 
 from kedro_telemetry import __version__ as telemetry_version
-from kedro_telemetry.masking import get_cli_structure, mask_kedro_cli
+from kedro_telemetry.masking import _get_cli_structure, _mask_kedro_cli
 
 HEAP_APPID_PROD = "2388822444"
 
@@ -72,8 +72,8 @@ class KedroTelemetryCLIHooks:
 
         # get KedroCLI and its structure from actual project root
         cli = KedroCLI(project_path=Path.cwd())
-        cli_struct = get_cli_structure(cli_obj=cli, get_help=False)
-        masked_command_args = mask_kedro_cli(
+        cli_struct = _get_cli_structure(cli_obj=cli, get_help=False)
+        masked_command_args = _mask_kedro_cli(
             cli_struct=cli_struct, command_args=command_args
         )
         main_command = masked_command_args[0] if masked_command_args else "kedro"
