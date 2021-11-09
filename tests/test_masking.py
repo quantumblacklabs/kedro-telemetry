@@ -94,13 +94,9 @@ class TestCLIMasking:
             "kedro.framework.cli.cli.importlib.import_module",
             return_value=Module(cli=cli),
         )
+        mocker.patch("kedro.framework.cli.cli._is_project", return_value=True)
         mocker.patch(
-            "kedro.framework.cli.cli._is_project",
-            return_value=True,
-        )
-        mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project",
-            return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
         raw_cli_structure = _get_cli_structure(kedro_cli, get_help=False)
@@ -123,13 +119,9 @@ class TestCLIMasking:
             "kedro.framework.cli.cli.importlib.import_module",
             return_value=Module(cli=cli),
         )
+        mocker.patch("kedro.framework.cli.cli._is_project", return_value=True)
         mocker.patch(
-            "kedro.framework.cli.cli._is_project",
-            return_value=True,
-        )
-        mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project",
-            return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
         raw_cli_structure = _get_cli_structure(kedro_cli, get_help=False)
@@ -159,13 +151,9 @@ class TestCLIMasking:
             "kedro.framework.cli.cli.importlib.import_module",
             return_value=Module(cli=cli),
         )
+        mocker.patch("kedro.framework.cli.cli._is_project", return_value=True)
         mocker.patch(
-            "kedro.framework.cli.cli._is_project",
-            return_value=True,
-        )
-        mocker.patch(
-            "kedro.framework.cli.cli.bootstrap_project",
-            return_value=fake_metadata,
+            "kedro.framework.cli.cli.bootstrap_project", return_value=fake_metadata
         )
         kedro_cli = KedroCLI(fake_metadata.project_path)
         help_cli_structure = _get_cli_structure(kedro_cli, get_help=True)
