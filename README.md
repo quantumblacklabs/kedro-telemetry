@@ -22,15 +22,17 @@ You have furthermore certain data subject rights under applicable laws (incl. ri
 
 ### What other information do you collect?
 
-Besides the hashed host- and username, we collect the following project-related information. Again, we rely on your consent to do so:
+Besides the hashed host and username, we collect the following project-related information. Again, we rely on your consent to do so:
 
-* CLI command that was run with arguments masked (e.g. `kedro run --env=test` → `kedro run --env *****`)
-* _(Hashed)_ Package name
-* _(Hashed)_ Project name
-* Project version
-* `kedro-telemetry` version
-* Python version
-* Operating system used
+|Description|Example Input|What we received|
+|-|-|-|
+|CLI command (masked arguments)|`kedro run --pipeline=ds --env=test`|`kedro run --pipeline ***** --env *****`|
+|_(Hashed)_ Package name|my-project|1c7cd944c28cd888904f3efc2345198507...|
+|_(Hashed)_ Project name|my_project|a6392d359362dc9827cf8688c9d634520e...|
+|`kedro` project version|0.17.6|0.17.6|
+|`kedro-telemetry` version|0.1.2|0.1.2|
+|Python version|3.8.10 (default, Jun  2 2021, 10:49:15)|3.8.10 (default, Jun  2 2021, 10:49:15)|
+|Operating system used|darwin|darwin|
 
 ### How do I consent to the use of Kedro-Telemetry?
 
