@@ -15,7 +15,7 @@ test:
 	pytest -vv tests
 
 secret-scan:
-	trufflehog --max_depth 1 .
+	trufflehog --max_depth 1 --exclude_paths trufflehog-ignore.txt .
 
 clean:
 	rm -rf build dist pip-wheel-metadata .pytest_cache
