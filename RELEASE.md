@@ -1,3 +1,8 @@
+# Release 0.1.3
+
+## Bug fixes and other changes
+* CLI command arguments on `kedro-telemetry` are now masked client-side, this allows for a more maintainable vocabulary.
+
 # Release 0.1.2
 
 ## Bug fixes and other changes
