@@ -62,6 +62,7 @@ repos:
       - id: secret_scan
         name: "Secret scan"
         language: system
+        exclude: ^README.md
         pass_filenames: false
         entry: make secret-scan
       - id: bandit
