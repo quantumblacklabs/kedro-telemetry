@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-black.svg)](https://github.com/ambv/black)
 
-_**Please Note:** As part of our move to the Linux Foundation Kedro-Telemetry has been moved to [`kedro-plugins`](https://github.com/kedro-org/kedro-plugins) and this repository will no longer be maintained. Please find an up-to-date copy of Kedro-Telemtery [here](https://github.com/kedro-org/kedro-plugins/tree/main/kedro-telemetry)._
+_**Please Note:** As part of our move to the [Linux Foundation](https://lfaidata.foundation/) Kedro-Telemetry has been moved to [`kedro-plugins`](https://github.com/kedro-org/kedro-plugins) and this repository will no longer be maintained. Please find an up-to-date copy of Kedro-Telemetry [here](https://github.com/kedro-org/kedro-plugins/tree/main/kedro-telemetry)._
 
 ---
 
